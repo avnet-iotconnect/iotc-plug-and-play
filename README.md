@@ -37,7 +37,9 @@ This will set you up in the perfect position to easily swap out the Python Lite 
 Plug and Play application.
 
 [The Plug and Play guide](GUIDE.md) will refer you to your board's Quickstart for the device setup and onboarding 
-process if you do not wish to do those at this time, as it is a mandatory step for all supported boards. 
+process if you do not wish to do those at this time, as it is a mandatory step for all supported boards. After that, the 
+only remaining steps are template creation and sending the desired data from your application to a JSON buffer, 
+both of which are very simple and also covered in the guide.
 
 # AWS Greengrass Demos Enablement
 
