@@ -1,7 +1,7 @@
 # Introduction
-This repository contains a modified [/IOTCONNECT Python Lite SDK](https://github.com/avnet-iotconnect/iotc-python-lite-sdk) Quickstart application designed to receive data from a 3rd-party application via JSON buffer which it can then transmit to /IOTCONNECT as telemetry. The application can also receive commands from /IOTCONNECT and hand them off to the 3rd-party application through a similar JSON buffer.
+This repository contains a modified [/IOTCONNECT Python Lite SDK](https://github.com/avnet-iotconnect/iotc-python-lite-sdk) "socket-style" application designed to receive data from any type of application via JSON buffer which it can then transmit to /IOTCONNECT as telemetry. The /IOTCONNECT application can also receive commands from /IOTCONNECT and hand them off to your application(s) through a similar JSON buffer.
 
-This framework allows users to make **minimal modifications** to their existing application while still reaping the full benefits of the /IOTCONNECT platform.
+This framework allows users to make **minimal modifications** to their existing application(s) while still reaping the full benefits of the /IOTCONNECT platform, and also allows multiple processes to report data to a single /IOTCONNECT cloud connection.
 
 For the the comprehensive guide through setting up any supported device for Plug and Play, see [GUIDE.md](GUIDE.md).
 
