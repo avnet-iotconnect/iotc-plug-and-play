@@ -3,7 +3,7 @@
 1. [Introduction](#1-introduction)
 2. [Device Setup](#2-device-setup)
 3. [Add Plug and Play Python App to Your Device](#3-add-plug-and-play-python-app-to-your-device)
-4. [/IOTCONNECT: Cloud Account Setup](#4-iotconnect-cloud-account-setup)
+4. [Modify Your Application to Send Data to and/or Receive Commands from JSON Buffer](#4-modify-your-application-to-send-data-to-and-or-receive-commands-from-json-buffer)
 5. [Device Setup](#5-device-setup)
 6. [Onboard Device](#6-onboard-device)
 7. [Using the Demo](#7-using-the-demo)
@@ -35,8 +35,11 @@ Navigate to the `/home/weston/demo` directory on your device and download the /I
 
 ```
 cd /home/weston/demo
-
+wget https://raw.githubusercontent.com/avnet-iotconnect/iotc-plug-and-play/main/iotc-pnp-app.py
 ```
+
+# 4. Modify Your Application to Send Data to and/or Receive Commands from JSON Buffer
+
 
 
 # 7. Using the Demo
