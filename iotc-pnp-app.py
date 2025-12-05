@@ -27,25 +27,8 @@ COMMAND_BUFFER_PATH = "/home/weston/demo/command-buffer.json"
 DATA_BUFFER_PATH = "/home/weston/demo/data-buffer.json"
 
 # ============================================================================
-# JSON Buffer Functions
+# JSON Buffer Management
 # ============================================================================
-
-# Uses file-locking to ensure file is not read while already being modified
-def safe_read_json(path):
-    with open(path, "r") as f:
-        fcntl.flock(f, fcntl.LOCK_SH)  # Acquire shared lock for reading
-        data = json.load(f)
-        fcntl.flock(f, fcntl.LOCK_UN)  # Release lock
-    return data
-
-
-# Uses file-locking to ensure file is not written to while already being modified
-def safe_write_json(path, data):
-    with open(path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)  # Acquire exclusive lock for writing
-        json.dump(data, f, indent=4)
-        fcntl.flock(f, fcntl.LOCK_UN)  # Release lock
-
 
 # Deletes command buffer (if exists) during shutdown to ensure old commands
 # aren't executed at next startup
@@ -148,7 +131,8 @@ def on_command(msg: C2dCommand):
             "parameters": params,
             "timestamp": int(time.time())
         }
-        safe_write_json(COMMAND_BUFFER_PATH, comm_dict)
+        with open(COMMAND_BUFFER_PATH, "w") as f:
+            json.dump(comm_dict, f, indent=4)
         
         # Send acknowledgement if required by device template
         if msg.ack_id is not None:
