@@ -127,7 +127,7 @@ def on_command(msg: C2dCommand):
         
         # Write command to buffer with timestamp for processing by other application
         comm_dict = {
-            "command": msg.command_name,
+            "command_name": msg.command_name,
             "parameters": params,
             "timestamp": int(time.time())
         }
