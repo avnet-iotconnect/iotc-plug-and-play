@@ -218,7 +218,8 @@ try:
                 sys.exit(2)
 
         # Read telemetry data from buffer and transmit to IoTConnect
-        telemetry = safe_read_json(DATA_BUFFER_PATH)
+        with open(DATA_BUFFER_PATH, "r") as f:
+            telemetry = json.load(f)
         c.send_telemetry(telemetry)
         
         # Wait before next transmission
