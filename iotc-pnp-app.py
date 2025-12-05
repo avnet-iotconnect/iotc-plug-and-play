@@ -1,22 +1,11 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2024 Avnet
 # Authors: Nikola Markovic <nikola.markovic@avnet.com> and Zackary Andraka <zackary.andraka@avnet.com> et al.
-"""
-IoTConnect Self-Updating Client
-
-This application connects to the Avnet IoTConnect platform and provides:
-- Telemetry data transmission from local JSON buffer
-- Command reception and forwarding to application buffer
-- Over-The-Air (OTA) update support
-- File download capability via commands
-- Graceful shutdown with cleanup
-"""
 
 # ============================================================================
 # Imports
 # ============================================================================
 
-# Standard library imports
 import sys
 import time
 import subprocess
@@ -24,39 +13,25 @@ import os
 import urllib.request
 import json
 import fcntl
-
-# Third-party imports
 import requests
 from avnet.iotconnect.sdk.lite import Client, DeviceConfig, C2dCommand, Callbacks, DeviceConfigError
 from avnet.iotconnect.sdk.lite import __version__ as SDK_VERSION
 from avnet.iotconnect.sdk.sdklib.mqtt import C2dAck, C2dOta
 
-
 # ============================================================================
-# Configuration Constants
+# Constants
 # ============================================================================
 
 DATA_FREQUENCY = 5  # Seconds between telemetry transmissions
 COMMAND_BUFFER_PATH = "/home/weston/demo/command-buffer.json"
 DATA_BUFFER_PATH = "/home/weston/demo/data-buffer.json"
 
-
 # ============================================================================
-# File I/O Utilities
+# JSON Buffer Functions
 # ============================================================================
 
+# Uses file-locking to ensure file is not read while already being modified
 def safe_read_json(path):
-    """
-    Read JSON file with file locking to prevent race conditions.
-    
-    Uses a shared lock (LOCK_SH) that allows multiple readers but blocks writers.
-    
-    Args:
-        path (str): Path to JSON file
-        
-    Returns:
-        dict: Parsed JSON data
-    """
     with open(path, "r") as f:
         fcntl.flock(f, fcntl.LOCK_SH)  # Acquire shared lock for reading
         data = json.load(f)
@@ -64,29 +39,17 @@ def safe_read_json(path):
     return data
 
 
+# Uses file-locking to ensure file is not written to while already being modified
 def safe_write_json(path, data):
-    """
-    Write JSON file with file locking to prevent race conditions.
-    
-    Uses an exclusive lock (LOCK_EX) that blocks all other readers and writers.
-    
-    Args:
-        path (str): Path to JSON file
-        data (dict): Data to write as JSON
-    """
     with open(path, "w") as f:
         fcntl.flock(f, fcntl.LOCK_EX)  # Acquire exclusive lock for writing
         json.dump(data, f, indent=4)
         fcntl.flock(f, fcntl.LOCK_UN)  # Release lock
 
 
+# Deletes command buffer (if exists) during shutdown to ensure old commands
+# aren't executed at next startup
 def cleanup_command_buffer():
-    """
-    Delete command buffer file if it exists.
-    
-    Called during graceful shutdown to prevent stale commands from being
-    processed when the application restarts.
-    """
     try:
         if os.path.exists(COMMAND_BUFFER_PATH):
             os.remove(COMMAND_BUFFER_PATH)
@@ -96,22 +59,11 @@ def cleanup_command_buffer():
 
 
 # ============================================================================
-# Package Management
+# OTA Package Management
 # ============================================================================
 
+# Handler for OTA packages
 def extract_and_run_tar_gz(targz_filename):
-    """
-    Extract a .tar.gz package and execute install.sh if present.
-    
-    The install.sh script is automatically deleted after execution to prevent
-    it from running again on future package updates that may not include it.
-    
-    Args:
-        targz_filename (str): Path to .tar.gz file
-        
-    Returns:
-        bool: True if extraction and installation successful, False otherwise
-    """
     try:
         # Extract the tar.gz archive
         subprocess.run(("tar", "-xzvf", targz_filename, "--overwrite"), check=True)
@@ -146,18 +98,8 @@ def extract_and_run_tar_gz(targz_filename):
 # IoTConnect Callback Handlers
 # ============================================================================
 
+# Handle commands received from /IOTCONNECT
 def on_command(msg: C2dCommand):
-    """
-    Handle commands received from IoTConnect cloud.
-    
-    Supports two command types:
-    1. file-download: Downloads a file from provided URL and restarts application
-    2. All others: Forwards command to local JSON buffer for application processing
-    
-    Args:
-        msg (C2dCommand): Command message from IoTConnect containing command name,
-                         arguments, and acknowledgement ID
-    """
     global c
     print("Received command", msg.command_name, msg.command_args, msg.ack_id)
     
@@ -213,17 +155,8 @@ def on_command(msg: C2dCommand):
             c.send_command_ack(msg, C2dAck.CMD_SUCCESS_WITH_ACK, "Forwarding command")
 
 
+# Handle OTA updates from /IOTCONNECT
 def on_ota(msg: C2dOta):
-    """
-    Handle Over-The-Air (OTA) update messages from IoTConnect.
-    
-    Downloads all files in the OTA package, extracts .tar.gz files,
-    executes any install scripts, and restarts the application if successful.
-    
-    Args:
-        msg (C2dOta): OTA update message from IoTConnect containing version
-                     and list of URLs to download
-    """
     global c
     print("Starting OTA downloads for version %s" % msg.version)
     c.send_ota_ack(msg, C2dAck.OTA_DOWNLOADING)
@@ -261,20 +194,13 @@ def on_ota(msg: C2dOta):
         print('Encountered a download processing error. Not restarting.')
 
 
+# Handle disconnection events from /IOTCONNECT
 def on_disconnect(reason: str, disconnected_from_server: bool):
-    """
-    Handle disconnection events from IoTConnect.
-    
-    Args:
-        reason (str): Reason for disconnection
-        disconnected_from_server (bool): True if server initiated disconnect,
-                                        False if client initiated
-    """
     print("Disconnected%s. Reason: %s" % (" from server" if disconnected_from_server else "", reason))
 
 
 # ============================================================================
-# Main Application
+# Main Loop
 # ============================================================================
 
 try:
